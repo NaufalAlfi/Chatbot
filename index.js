@@ -30,6 +30,7 @@ async function connectWhatsApp() {
   const MESSAGE_LIMIT = 5;
   const TIME_WINDOW = 60000; // 60 seconds
 
+  //Pengucapan selamat menyesuaikan jam
   const getGreetingTime = () => {
     const now = new Date();
     const hour = now.getHours();
@@ -42,6 +43,7 @@ async function connectWhatsApp() {
   socket.ev.on("messages.upsert", async ({ messages }) => {
     const message = messages[0];
 
+    //ignore Group!
     if (message.key.fromMe) return;
     const isGroup = message.key.remoteJid.includes("@g.us");
     if (isGroup) return;
@@ -67,6 +69,7 @@ async function connectWhatsApp() {
       (timestamp) => Date.now() - timestamp < TIME_WINDOW
     );
 
+    //Deteksi Spam
     if (messageCount[pengirim].length > MESSAGE_LIMIT) {
       console.log(`Spam detected from ${pengirim}`);
       await socket.sendMessage(pengirim, {
@@ -75,6 +78,7 @@ async function connectWhatsApp() {
       return;
     }
 
+    //Triger chatbot
     if (
       !consultationStatus[pengirim] &&
       (incomingMessage.toLowerCase() === "hallo" ||
@@ -115,7 +119,9 @@ async function connectWhatsApp() {
           });
           break;
       }
-    } else if (consultationStatus[pengirim] === "waitingForSubChoice") {
+    }
+    //sub-opsi jika memilih Konsultasi Produk
+    else if (consultationStatus[pengirim] === "waitingForSubChoice") {
       switch (incomingMessage.trim()) {
         case "1":
         case "Tanya Admin":
